@@ -1,0 +1,51 @@
+name: Deploy Portfolio to VPS with Podman
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create archive
+        # Create tar outside of the current directory to prevent 'file changed as we read it' errors, then move it back
+        run: |
+          tar -czf /tmp/release.tar.gz --exclude=.git --exclude=node_modules .
+          mv /tmp/release.tar.gz ./release.tar.gz
+
+      - name: Copy archive to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 158.220.104.108
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          source: "release.tar.gz"
+          target: "/opt/saransridatha"
+
+      - name: Deploy application using Podman
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 158.220.104.108
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            # Ensure target directory exists
+            mkdir -p /opt/saransridatha
+            cd /opt/saransridatha
+
+            # Extract the new release
+            tar -xzf release.tar.gz
+            rm release.tar.gz
+            
+            # Note: Add .env recreation here if your portfolio needs one, like:
+            # echo "${{ secrets.VPS_ENV_FILE }}" > .env
+
+            # Deploy using Podman compose
+            podman-compose down || true
+            podman-compose up -d --build
