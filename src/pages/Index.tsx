@@ -17,6 +17,9 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const Index = () => {
   useEffect(() => {
+    // Force scroll to top on refresh
+    window.scrollTo(0, 0);
+    
     const lenis = new Lenis();
 
     lenis.on("scroll", ScrollTrigger.update);

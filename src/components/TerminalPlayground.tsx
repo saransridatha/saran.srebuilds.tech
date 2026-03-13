@@ -209,7 +209,6 @@ export default function TerminalPlayground() {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={onKeyDown}
             className="bg-transparent border-none outline-none text-foreground w-full p-0 caret-primary"
-            autoFocus
             spellCheck="false"
             autoComplete="off"
           />
